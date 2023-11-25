@@ -1,0 +1,29 @@
+---
+title: "EDA_FinalProject"
+author: "Fiona Kelley & David Liddle"
+date: "2023-11-25"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse);library(lubridate);library(here);library(ggplot2);
+library(cowplot);library(knitr); library(agricolae);library(dplyr)
+library(here)
+
+```
+
+```{r Loading & Wrangling Data}
+salmon_data <- read.csv(here("Data","Raw","WDFW-SGS_20231022.csv"),
+  stringsAsFactors = TRUE)%>% 
+  mutate(SurveyDate = mdy(SurveyDate))%>%
+  select(-c(3,4,8,9,16,17:27,28,30,31,33:35,37:40,42:59))%>% # Remove unnecessary columns
+  filter(RunYear>=1973, WRIA %in% c(3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)) %>% na.omit() #Include only last 50 years of data and WRIAs from Strait of Juan de Fuca and Puget Sound
+```
+
+```{r Write into a CSV file}
+#6 Saving the processed datasets as csv files. 
+write.csv(
+  salmon_data, row.names = FALSE, file = "./Data/Raw/salmon_data_filtered.csv")
+```
+
