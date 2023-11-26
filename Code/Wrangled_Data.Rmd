@@ -27,3 +27,22 @@ write.csv(
   salmon_data, row.names = FALSE, file = "./Data/Raw/salmon_data_filtered.csv")
 ```
 
+```{r Create new Wrangled Data Based on Species and not WRIA}
+salmon_data_species <- read.csv(here("Data","Raw","WDFW-SGS_20231022.csv"),
+  stringsAsFactors = TRUE)%>% 
+  mutate(SurveyDate = mdy(SurveyDate))%>%
+  select(-c(3,4,8,9,16,17:27,28,30,31,33:35,37:40,42:59))%>% # Remove unnecessary columns
+  filter(RunYear>=1973, SpeciesAbbr %in% c("CHIN","COHO","SOCK")) %>% na.omit() #Include only last 50 years of data and WRIAs from Strait of Juan de Fuca and Puget Sound
+```
+
+```{r Write into a CSV file}
+#6 Saving the processed datasets as csv files. 
+write.csv(
+  salmon_data_species, row.names = FALSE, file = "./Data/Raw/salmon_data_species.csv")
+```
+
+```{r}
+salmon_data_WRIA19 <- salmon_data_species %>%
+  filter(WRIA==19)
+```
+
