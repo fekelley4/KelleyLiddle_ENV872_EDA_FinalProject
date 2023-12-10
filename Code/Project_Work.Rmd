@@ -135,21 +135,68 @@ salmon_data_WRIA <- salmon_data_species %>% filter(WRIA %in% c(17,18,19))
 ggplot(salmon_data_WRIA, aes(x = RunYear, y = LiveTotal)) +
   geom_point() +
   geom_smooth(method = 'loess', se = FALSE, color="green") +
-  labs(title = "Chinook/Coho/Sockeye Salmon Live Counts in WRIA 19",
+  labs(title = "Chinook/Coho/Sockeye Salmon Live Counts in Study Area",
        x = "Year", y = "Live Count")
 ```
+```{r Graphing the Data}
+#Plot Chinook Data
+ggplot(salmon_chin_long,aes(x=RunYear,y=count, color=status)) + 
+   geom_point() +
+  geom_smooth(method = 'loess', se = FALSE, color="black") +
+  labs(title ="Average Live and Dead Chinook Salmon Counts",
+       x = "Year",y = "Count", color="Status") +
+  scale_color_manual(
+    values = c("average_live" = "blue", "average_dead" = "red"),
+    labels = c("Dead Count", "Live Count"))
+#Plot Sockeye Data
+ggplot(salmon_sock_long,aes(x=RunYear,y=count, color=status)) + 
+  geom_point() +
+  geom_smooth(method = 'loess', se = FALSE, color="black") +
+  labs(title ="Average Live and Dead Sockeye Salmon Counts",
+       x = "Year",y = "Count", color="Status") +
+  scale_color_manual(
+    values = c("average_live" = "blue", "average_dead" = "red"),
+    labels = c("Dead Count", "Live Count"))
+#Plot Coho Data
+ggplot(salmon_coho_long,aes(x=RunYear,y=count, color=status)) + 
+  geom_point() +
+  geom_smooth(method = 'loess', se = FALSE, color="black") +
+  labs(title ="Average Live and Dead Coho Salmon Counts",
+       x = "Year",y = "Count", color="Status") +
+  scale_color_manual(
+    values = c("average_live" = "blue", "average_dead" = "red"),
+    labels = c("Dead Count", "Live Count"))
+```
+
+```{r Temperature Data}
+# Temperatures
+salmon_data_temp <- salmon_data_species%>%
+  select(RunYear,WaterTempFarenheit) %>% na.omit()
+# Average Temperatures
+salmon_data_temp_avg <- salmon_data_temp%>%
+  group_by(RunYear) %>%
+  summarize(avg.temp = mean(WaterTempFarenheit))
 ```
 
 ```{r}
-salmon_chin_WRIA7 <- salmon_chin %>% filter(WRIA==7)
+install.packages("sf")
+library(sf)
 
-ggplot(salmon_chin_WRIA7, aes(x = Year, y = LiveTotal)) +
-  geom_point() +
-  geom_smooth(method = 'loess', se = FALSE, color="green") +
-  labs(title = "Chinook Salmon Live Counts in WRIA 7",
-       x = "Year", y = "Live Count")
+data <- st_read(here('WR_WAT_WRIA.gdb'))
+library(mapview)
+mapView(data)
+
+library(dplyr)
+
+joined_data <- data %>% inner_join(salmon_coding, by = c("WRIA_ID"="WRIA"))
+
+# View the result
+print(joined_data)
+mapview(joined_data)
 ```
 
+
+```{r}
 ```
 
 
