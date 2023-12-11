@@ -14,49 +14,147 @@ library(here)
 
 ```{r Set Theme}
 #2 Build ggplot theme
-david_theme <- theme_classic(base_size = 14) +
+salmon_theme <- theme_classic(base_size = 14) +
 theme(axis.text = element_text(color = "black"),
 legend.position = "right",
 panel.grid.minor = element_line(color = "gray", linetype = "solid"),
 panel.grid.major = element_line(color = "gray", linetype = "solid"),
 legend.background = element_rect(fill = "gray"))
 #Set the theme
-theme_set(david_theme)
+theme_set(salmon_theme)
 ```
 
 ```{r Import Wrangled Data}
-salmon_coding <- read.csv(here("Data","Raw","salmon_data_filtered.csv"),
+salmon_data <- read.csv(here("Data","Raw","salmon_data.csv"),
   stringsAsFactors = TRUE)
 ```
 
-```{r Organize data by Observation Year}
-# Live Salmon Counts
-salmon_live <- salmon_coding %>%
-  group_by(RunYear) %>%
-  summarize(average_live = mean(LiveTotal))
-# Dead Salmon Counts
-salmon_dead <- salmon_coding %>%
-  group_by(RunYear) %>%
-  summarize(average_dead = mean(DeadTotal))
-#Merge datasets
-Combined_salmon <- full_join(salmon_live, salmon_dead)
-```
-
-```{r Graph the data}
-#Rehape Data
-salmon_long <- gather(Combined_salmon, key = "status", value = "count", -RunYear)
-#Plot Data
-ggplot(salmon_long,aes(x=RunYear,y=count, color=status)) + 
-  geom_line() +
-  labs(title ="Average Live and Dead Salmon Counts in WRIA's of Interest from 1973 to 2023",
-       x = "Year",y = "Count", color="Status")
-
-```
 ```{r Split Dataset by Species}
-salmon_chin <- salmon_data_species %>% filter(SpeciesAbbr=="CHIN")
-salmon_sock <- salmon_data_species %>% filter(SpeciesAbbr=="SOCK")
-salmon_coho <- salmon_data_species %>% filter(SpeciesAbbr=="COHO")
+salmon_chin <- salmon_data %>% filter(SpeciesAbbr=="CHIN")
+salmon_sock <- salmon_data %>% filter(SpeciesAbbr=="SOCK")
+salmon_coho <- salmon_data %>% filter(SpeciesAbbr=="COHO")
 ```
+
+```{r Calculate and Graph Average Count Data}
+
+Average_LiveCount <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by WRIA and survey date
+  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE))
+
+Average_DeadCount <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by WRIA and survey date
+  summarise(Avg_Dead = mean(DeadTotal, na.rm = TRUE))
+
+Average_CombinedRedd <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by WRIA and survey date
+  summarise(Avg_CombinedRedd = mean(CombinedReddCount, na.rm = TRUE))
+
+Average_NewRedd <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by WRIA and survey date
+  summarise(Avg_NewRedd = mean(NewReddCount, na.rm = TRUE))
+
+ggplot(Average_LiveCount, aes(x = RunYear, y = Avg_Live, fill = SpeciesAbbr)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average Live Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+ggplot(Average_DeadCount, aes(x = RunYear, y = Avg_Dead, fill = SpeciesAbbr)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average Dead Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+ggplot(Average_CombinedRedd, aes(x = RunYear, y = Avg_CombinedRedd, fill = SpeciesAbbr)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average Combined Redd Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+ggplot(Average_NewRedd, aes(x = RunYear, y = Avg_NewRedd, fill = SpeciesAbbr)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average New Redd Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+```
+
+```{r Calculate and Graph Average Counts by Species}
+#Chinook counts
+AverageLive_Chinook <- salmon_chin %>% 
+  group_by(RunYear) %>% 
+  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE))
+
+ggplot(AverageLive_Chinook, aes(x = RunYear, y = Avg_Live)) +
+  geom_col() +
+  labs(title = "Average Live Chinook Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+AverageNewRedd_Chinook <- salmon_chin %>% 
+  group_by(RunYear) %>% 
+  summarise(Avg_NewRedd = mean(NewReddCount, na.rm = TRUE))
+
+ggplot(AverageNewRedd_Chinook, aes(x = RunYear, y = Avg_NewRedd)) +
+  geom_col() +
+  labs(title = "Average New Redd Chinook Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+#Sockeye counts
+AverageLive_Sockeye <- salmon_sock %>% 
+  group_by(RunYear) %>% 
+  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE))
+
+ggplot(AverageLive_Sockeye, aes(x = RunYear, y = Avg_Live)) +
+  geom_col() +
+  labs(title = "Average Live Sockeye Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+AverageNewRedd_Sockeye <- salmon_sock %>% 
+  group_by(RunYear) %>% 
+  summarise(Avg_NewRedd = mean(NewReddCount, na.rm = TRUE))
+
+ggplot(AverageNewRedd_Sockeye, aes(x = RunYear, y = Avg_NewRedd)) +
+  geom_col() +
+  labs(title = "Average New Redd Sockeye Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+#Coho counts 
+
+AverageLive_Coho <- salmon_coho %>% 
+  group_by(RunYear) %>% 
+  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE))
+
+ggplot(AverageLive_Coho, aes(x = RunYear, y = Avg_Live)) +
+  geom_col() +
+  labs(title = "Average Live Coho Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+AverageNewRedd_Coho <- salmon_coho %>% 
+  group_by(RunYear) %>% 
+  summarise(Avg_NewRedd = mean(NewReddCount, na.rm = TRUE))
+
+ggplot(AverageNewRedd_Coho, aes(x = RunYear, y = Avg_NewRedd)) +
+  geom_col() +
+  labs(title = "Average New Redd Coho Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+```
+
+```{r Average Annual Temperature}
+
+#Calculate average water temperature. 
+AverageAnnualTemp_salmon <- salmon_data %>%
+  group_by(RunYear) %>% # Group the data by year
+  summarise(Avg_WaterTemp = mean(WaterTempFarenheit, na.rm = TRUE))
+
+
+```
+
+```{r Linear Regression for Salmon Counts and Temperature}
+
+#Correlation between total counts and temperature 
+
+
+LiveCounts_Temp<- lm(data = lakechem_select, temperature_C ~ depth)
+
+```
+
 
 ```{r Organize data by Observation Year}
 #Sorting for Chinook
@@ -193,6 +291,7 @@ joined_data <- data %>% inner_join(salmon_coding, by = c("WRIA_ID"="WRIA"))
 # View the result
 print(joined_data)
 mapview(joined_data)
+data
 ```
 
 

@@ -11,37 +11,25 @@ library(tidyverse);library(lubridate);library(here);library(ggplot2);
 library(cowplot);library(knitr); library(agricolae);library(dplyr)
 library(here)
 
+getwd()
+
 ```
 
 ```{r Loading & Wrangling Data}
 salmon_data <- read.csv(here("Data","Raw","WDFW-SGS_20231022.csv"),
   stringsAsFactors = TRUE)%>% 
-  mutate(SurveyDate = mdy(SurveyDate))%>%
-  filter(RunYear>=1973) %>% na.omit() #Include only last 50 years of data
+  mutate(SurveyDate = mdy(SurveyDate))%>% #Turn survey dates into a date factor
+  filter(RunYear>=1973, SpeciesAbbr %in% c("CHIN","COHO","SOCK")) %>% 
+  #Include only last 50 years of data, and species of interest
+  select(c("SurveyID","SurveyDate","WRIA","StreamCatalogCode","StreamName",
+           "WaterTempFarenheit","SpeciesAbbr","Species","RunYear","LiveTotal",
+           "DeadTotal","NewReddCount","PreviousReddCount",
+           "CombinedReddCount"))#Keep columns of interest
 ```
 
 ```{r Write into a CSV file}
-#6 Saving the processed datasets as csv files. 
+#6 Saving the wrangled dataset as a csv file. 
 write.csv(
-  salmon_data, row.names = FALSE, file = "./Data/Raw/salmon_data_filtered.csv")
-```
-
-```{r Create new Wrangled Data Based on Species and not WRIA}
-salmon_data_species <- read.csv(here("Data","Raw","WDFW-SGS_20231022.csv"),
-  stringsAsFactors = TRUE)%>% 
-  mutate(SurveyDate = mdy(SurveyDate))%>%
-  select(-c(3,4,8,9,16,17:24,26,27,28,30,31,33:35,37:40,42:59))%>% # Remove unnecessary columns
-  filter(RunYear>=1973, SpeciesAbbr %in% c("CHIN","COHO","SOCK")) #Include only last 50 years of data and salmon species of Interest
-```
-
-```{r Write into a CSV file}
-#6 Saving the processed datasets as csv files. 
-write.csv(
-  salmon_data_species, row.names = FALSE, file = "./Data/Raw/salmon_data_species.csv")
-```
-
-```{r}
-salmon_data_WRIA19 <- salmon_data_species %>%
-  filter(WRIA==19)
+  salmon_data, row.names = FALSE, file = "./Data/Raw/salmon_data.csv")
 ```
 
