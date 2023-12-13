@@ -110,3 +110,108 @@ Raw Data:
 | NewReddCount      | The count of new redds (fish nests) observed during the survey       | Number       | N/A                   |
 | PreviousReddCount | The count of redds observed during previous surveys                  | Number       | N/A                   |
 | CombinedReddCount | The combined count of new and previous redds observed during the survey | Number    | N/A                   |
+
+3. Salmon_ProcessedData_LiveCountInterpolation.csv
+
+Missing live counts were interpolated before the calculation of the mean live count observations per month.
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Number  | N/A         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date | YYYY-MM-DD      |
+
+
+
+
+
+
+4. Salmon_ProcessedData_NewReddCountInterpolation.csv
+
+Missing new redd counts were interpolated before the calculation of the mean live count observations per month.
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Number  | N/A         |
+| MeanRedd    | Average count of live salmon observed per month                   | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date | YYYY-MM-DD      |
+
+
+5. ChinookSalmon_ProcessedData.csv
+
+
+Subsets only the Chinook Salmon observations from salmon_data.csv, and adds a month column for averaging purposes and time-series analysis.
+
+
+| Column Name | Description | Data Type | Units |
+|-------------|-------------|-----------|-------|
+| Month       | Isolated observation month for averaging purposes and time-series analysis. | Date & Time | YYYY-MM |
+ 
+
+
+6. ChinookSalmon_ProcessedData_Interpolation.csv
+
+This dataset includes mean live and new redd counts for only Chinook Salmon.
+
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Date & Time  | YYYY-MM         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| MeanRedd    | Average new redd count observed per month                         | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date & Time  | YYYY-MM-DD      |
+
+
+7. CohoSalmon_ProcessedData.csv
+
+
+Subsets only the Coho Salmon observations from salmon_data.csv, and adds a month column for averaging purposes and time-series analysis.
+
+
+| Column Name | Description | Data Type | Units |
+|-------------|-------------|-----------|-------|
+| Month       | Isolated observation month for averaging purposes and time-series analysis. | Date & Time | YYYY-MM |
+
+
+8. CohoSalmon_ProcessedData_Interpolation.csv
+
+This dataset includes mean live and new redd counts for only Coho Salmon.
+
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Date & Time  | YYYY-MM         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| MeanRedd    | Average new redd count observed per month                         | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date & Time  | YYYY-MM-DD      |
+
+
+9. SockeyeSalmon_ProcessedData.csv
+
+
+Subsets only the Sockeye Salmon observations from salmon_data.csv, and adds a month column for averaging purposes and time-series analysis.
+
+
+| Column Name | Description | Data Type | Units |
+|-------------|-------------|-----------|-------|
+| Month       | Isolated observation month for averaging purposes and time-series analysis. | Date & Time | YYYY-MM |
+
+
+
+
+10. SockeyeSalmon_ProcessedData_Interpolation.csv
+
+This dataset includes mean live and new redd counts for only Sockeye Salmon.
+
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Date & Time  | YYYY-MM         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| MeanRedd    | Average new redd count observed per month                         | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date & Time  | YYYY-MM-DD      |
