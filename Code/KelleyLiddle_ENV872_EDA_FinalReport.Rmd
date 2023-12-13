@@ -43,6 +43,15 @@ theme_set(salmon_theme)
 ```{r Import Data, include=FALSE}
 salmon_data <- read.csv(here("Data","Raw","salmon_data.csv"),
   stringsAsFactors = TRUE)
+#Add Month column to data
+salmon_data$Month <- as.Date(month(salmon_data$SurveyDate))
+
+salmon_chin <- read.csv(here("Data","Processed","ChinookSalmon_ProcessedData.csv"),
+  stringsAsFactors = TRUE)
+salmon_coho <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData.csv"),
+  stringsAsFactors = TRUE)
+salmon_sock <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData.csv"),
+  stringsAsFactors = TRUE)
 salmon_live_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_LiveCountInterpolation.csv"),
   stringsAsFactors = TRUE)
 salmon_redd_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_NewReddCountInterpolation.csv"),
@@ -54,15 +63,6 @@ coho_data_int <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData_Inte
 sock_data_int <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData_Interpolation.csv"),
   stringsAsFactors = TRUE)
 
-```
-
-```{r Split Dataset by Species + Additional Wrangling, include=FALSE}
-#Add Month column to data
-salmon_data$Month <- as.Date(month(salmon_data$SurveyDate))
-#Split dataset by species
-salmon_chin <- salmon_data %>% filter(SpeciesAbbr=="CHIN")
-salmon_sock <- salmon_data %>% filter(SpeciesAbbr=="SOCK")
-salmon_coho <- salmon_data %>% filter(SpeciesAbbr=="COHO")
 ```
 
 ## Exploratory Analysis 
@@ -207,6 +207,7 @@ model <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
 # Fit the model
 summary(model)
 ```
+
 ```{r Multiple Regression New Redd Counts}
 # Create AIC to determine what set of variables is the live count predictor
 TPAIC2 <- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit + Month)
