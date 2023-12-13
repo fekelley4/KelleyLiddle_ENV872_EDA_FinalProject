@@ -148,7 +148,50 @@ ggplot(AverageNewRedd_Coho, aes(x = RunYear, y = Avg_NewRedd)) +
   labs(title = "Average New Redd Coho Salmon Count from 1973 to 2023",
        x = "Year", y = "Count")
 
+#Total redd count bar graph. 
+TotalReddPlot <- ggplot(salmon_data, aes(x = RunYear, y = CombinedReddCount, fill = Species)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  labs(title = "Total Salmon Redds per Year",
+       x = "Run Year",
+       y = "Total Redd Count", 
+       fill = "Salmon Species") +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e3)) 
+TotalReddPlot
 ```
+
+```{r Scatterplots by Species}
+#Plot species counts. 
+LiveSalmon_scatter <- 
+  ggplot(salmon_data, aes(x=RunYear, y=LiveTotal, color = Species))+
+  geom_point(size = 0.7) +
+  labs(title = "Salmon Live Count Observations (1973 to 2023)", 
+       x = "Year",
+       y = "Salmon Count",
+       color = "Salmon Species")
+LiveSalmon_scatter
+
+# Define lower and upper bounds for LiveTotal (Used ChatGPT to assist in removing outliers)
+lower_bound_LiveTotal <- 0
+upper_bound_LiveTotal <- 5000
+# Filter data to remove outliers
+CleanLiveSalmon_data <- salmon_data %>%
+  filter(LiveTotal >= lower_bound_LiveTotal & LiveTotal <= upper_bound_LiveTotal)
+
+# Plot live counts 
+LiveSalmon_scatter <- ggplot(CleanLiveSalmon_data, aes(x = RunYear, y = LiveTotal, color = Species)) +
+  geom_point(size = 0.7) +
+  geom_smooth(method = "lm", se = FALSE)
+  labs(
+    title = "Salmon Live Count Observations without Outliers (1973 to 2023)",
+    x = "Year",
+    y = "Salmon Count",
+    color = "Salmon Species"
+  )
+
+LiveSalmon_scatter
+
+```
+
 ```{r Salmon Boxplots}
 
 #Boxplot of total live salmon counts. 
@@ -253,6 +296,7 @@ NewReddCountscoho_Temp<- lm(data = salmon_coho, NewReddCount ~ WaterTempFarenhei
 summary(NewReddCountscoho_Temp)
 plot(NewReddCountscoho_Temp)
 ```
+
 ```{r Multiple Regression Analysis for Live Count}
 # Create AIC to determine what set of variables is the live count predictor
 TPAIC <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
@@ -263,6 +307,7 @@ model <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
 # Fit the model
 summary(model)
 ```
+
 ```{r Multiple Regression New Redd Counts}
 # Create AIC to determine what set of variables is the live count predictor
 TPAIC2 <- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit + Month)
@@ -284,6 +329,7 @@ LiveCountssock_month<- lm(data = salmon_sock, LiveTotal ~ Month)
 summary(LiveCountssock_month)
 plot(LiveCountssock_month)
 ```
+
 ```{r Time Series Analysis Interpolation & Data Preparation}
 #Add linear interpolation to missing data Live Count
 salmon_data_interpolated <- 
@@ -293,7 +339,7 @@ salmon_data_interpolated <-
 salmon_data1 <- salmon_data_interpolated %>%
     mutate(Year = year(SurveyDate), Month = month(SurveyDate)) %>% #Ask about this in class
  group_by(Year, Month) %>%
-# Calculate the mean live and new redd count for each month
+# Calculate the mean live count for each month
   summarize(MeanLive = mean(LiveTotal)) %>%
 # Create a new Date column with the first day of each month
   mutate(Date = ymd(paste(Year, Month, "01", sep = "-")))
@@ -437,7 +483,6 @@ write.csv(
 
 ```
 
-
 ```{r Species Time Series Analysis}
 
 # Generate time series for Chinook monthly average live counts 
@@ -555,7 +600,6 @@ ggplot(average_live_chin, aes(x = Month, y = Avg_Live)) +
 
 ```
 
-
 ```{r Organize data by Observation Year}
 #Sorting for Chinook
 # Live Salmon Counts
@@ -636,6 +680,7 @@ ggplot(salmon_data_WRIA, aes(x = RunYear, y = LiveTotal)) +
   labs(title = "Chinook/Coho/Sockeye Salmon Live Counts in Study Area",
        x = "Year", y = "Live Count")
 ```
+
 ```{r Graphing the Data}
 #Plot Chinook Data
 ggplot(salmon_chin_long,aes(x=RunYear,y=count, color=status)) + 
@@ -676,26 +721,14 @@ salmon_data_temp_avg <- salmon_data_temp%>%
   summarize(avg.temp = mean(WaterTempFarenheit))
 ```
 
-```{r}
+```{r Map of Streams}
 install.packages("sf")
 library(sf)
 
-data <- st_read(here('WR_WAT_WRIA.gdb'))
+data <- st_read(here('Washington_Streams.gdb'))
 library(mapview)
 mapView(data)
 
-library(dplyr)
-
-joined_data <- data %>% inner_join(salmon_coding, by = c("WRIA_ID"="WRIA"))
-
-# View the result
-print(joined_data)
-mapview(joined_data)
-data
-```
-
-
-```{r}
 ```
 
 
