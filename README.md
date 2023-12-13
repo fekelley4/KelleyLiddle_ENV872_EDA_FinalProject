@@ -219,15 +219,18 @@ This dataset includes mean live and new redd counts for only Sockeye Salmon.
 
 ## Scripts and code
 
-Wrangling code:
-    1. Wrangled_Data.Rmd
-Code for wrangling the salmon dataset
-Exploration code:
-Project_Work.Rmd
-Code for subsetting and interpolating the wrangled data. General observation graphs, single regressions, multiple regressions, time-series analyses, and geodatabases were explored here.
-Analysis Code: 
-KelleyLiddle_ENV872_EDA_FinalReport.Rmd 
-Successful analyses were compiled here to form a comprehensive report.
+### Wrangling Code:
+1. **Wrangled_Data.Rmd**
+   - Code for wrangling the salmon dataset
+
+### Exploration Code:
+1. **Project_Work.Rmd**
+   - Code for subsetting and interpolating the wrangled data.
+   - General observation graphs, single regressions, multiple regressions, time-series analyses, and geodatabases were explored here.
+
+### Analysis Code:
+1. **KelleyLiddle_ENV872_EDA_FinalReport.Rmd**
+   - Successful analyses were compiled here to form a comprehensive report.
 
 ## Quality assurance/quality control
 
