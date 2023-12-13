@@ -23,7 +23,7 @@ The selected dataset is a Spawning Ground Survey (SGS) database obtained from th
 # Importing the necessary packages for data analysis 
 library(tidyverse);library(lubridate);library(here);library(ggplot2);
 library(cowplot);library(knitr); library(agricolae);library(dplyr)
-library(here)
+library(here);library(cowplot)
 ```
 
 ```{r Set Theme, include=FALSE}
@@ -43,6 +43,17 @@ theme_set(salmon_theme)
 ```{r Import Data, include=FALSE}
 salmon_data <- read.csv(here("Data","Raw","salmon_data.csv"),
   stringsAsFactors = TRUE)
+salmon_live_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_LiveCountInterpolation.csv"),
+  stringsAsFactors = TRUE)
+salmon_redd_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_NewReddCountInterpolation.csv"),
+  stringsAsFactors = TRUE)
+chin_data_int <- read.csv(here("Data","Processed","ChinookSalmon_ProcessedData_Interpolation.csv"),
+  stringsAsFactors = TRUE)
+coho_data_int <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData_Interpolation.csv"),
+  stringsAsFactors = TRUE)
+sock_data_int <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData_Interpolation.csv"),
+  stringsAsFactors = TRUE)
+
 ```
 
 ```{r Split Dataset by Species + Additional Wrangling, include=FALSE}
@@ -56,29 +67,294 @@ salmon_coho <- salmon_data %>% filter(SpeciesAbbr=="COHO")
 
 ## Exploratory Analysis 
 
-```{r Calculate and Graph Average Count Data}
+```{r Total Counts Graphs, include=FALSE}
 
-Average_LiveCount <- salmon_data %>%
-  group_by(SpeciesAbbr, RunYear) %>% # Group the data by Species and Run Year
-  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE)) #find average live count
+#Total salmon live count bar graph. 
+ggplot(salmon_data, aes(x = RunYear, y = LiveTotal, fill = Species)) +
+  geom_bar(stat = "identity", width = 0.9) +
+  labs(title = "Total Salmon Live Counts per Year",
+       x = "Run Year",
+       y = "Total Live Count", 
+       fill = "Salmon Species") +
+  # Utilized ChatGPT to help format the numbers on the y-axis 
+  scale_y_continuous(labels = scales::comma_format(scale = 1e3)) 
 
-Average_NewRedd <- salmon_data %>%
-  group_by(SpeciesAbbr, RunYear) %>% # Group the data by Species and Run Year
-  summarise(Avg_NewRedd = mean(NewReddCount, na.rm = TRUE)) #find average new redd count
+#Total redd count bar graph. 
+TotalReddPlot <- ggplot(salmon_data, aes(x = RunYear, y = CombinedReddCount, fill = Species)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  labs(title = "Total New Salmon Redds per Year",
+       x = "Run Year",
+       y = "Total Redd Count", 
+       fill = "Salmon Species") +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e3)) 
+TotalReddPlot
 
-ggplot(Average_LiveCount, aes(x = RunYear, y = Avg_Live, fill = SpeciesAbbr)) +
-  geom_col(position = "dodge") +
-  labs(title = "Average Live Salmon Count from 1973 to 2023",
-       x = "Year", y = "Count")
+#Total new redd count bar graph. 
+TotalNewReddPlot <- ggplot(salmon_data, aes(x = RunYear, y = NewReddCount, fill = Species)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  labs(title = "Total New Salmon Redds per Year",
+       x = "Run Year",
+       y = "Total Redd Count", 
+       fill = "Salmon Species") +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e3))
+TotalNewReddPlot
 
-ggplot(Average_NewRedd, aes(x = RunYear, y = Avg_NewRedd, fill = SpeciesAbbr)) +
-  geom_col(position = "dodge") +
-  labs(title = "Average New Redd Salmon Count from 1973 to 2023",
-       x = "Year", y = "Count")
+```
+
+```{r Annual Stream Temperature, include=FALSE}
+
+#Calculate average water temperature. 
+AnnualStreamTemp_salmon <- 
+  ggplot(salmon_data, aes(x=RunYear, y=WaterTempFarenheit))+
+  geom_point(size = 0.7) + 
+  labs(title = "Washington Stream Temperature Observations (1973 to 2023)", 
+       x = "Year",
+       y = "Stream Temperature (Fahrenheit)")
+AnnualStreamTemp_salmon
+
+StreamTemp_boxplot <- ggplot(salmon_data, 
+aes( x = RunYear, y = WaterTempFarenheit)) +
+geom_boxplot(na.rm = TRUE) + 
+  #Found this function on ChatGPT, it put the months in correct order
+   labs(title = "Washington Stream Temperature (1973 to 2023)", #Create title and label axes
+       x = "Year",
+       y = "Stream Temperature (Fahrenheit)")
+StreamTemp_boxplot
 
 ```
 
 ## Analysis
+
+```{r Linear Regression for Salmon Counts and Temperature, include=FALSE}
+#All Species Linear Regression
+
+#Correlation between live counts and temperature
+LiveCounts_Temp<- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCounts_Temp)
+plot(LiveCounts_Temp)
+#Plot linear regression
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCounts_Temp)
+par(mfrow = c(1,1))
+
+#Correlation between new redd counts and temperature
+NewReddCounts_Temp<- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCounts_Temp)
+plot(NewReddCounts_Temp)
+#Plot linear regression
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCounts_Temp)
+par(mfrow = c(1,1))
+
+#Chinook Linear Regression
+
+#Correlation between live counts and temperature
+LiveCountschin_Temp<- lm(data = salmon_chin, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCountschin_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCountschin_Temp)
+par(mfrow = c(1,1))
+
+#Correlation between new redd counts and temperature
+NewReddCountschin_Temp<- lm(data = salmon_chin, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCountschin_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCountschin_Temp)
+par(mfrow = c(1,1))
+
+#Coho Linear Regression
+
+#Correlation between live counts and temperature
+LiveCountscoho_Temp<- lm(data = salmon_coho, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCountscoho_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCountscoho_Temp)
+par(mfrow = c(1,1))
+
+#Correlation between new redd counts and temperature
+NewReddCountscoho_Temp<- lm(data = salmon_coho, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCountscoho_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCountscoho_Temp)
+par(mfrow = c(1,1))
+
+#Sockeye Linear Regression
+
+#Correlation between live counts and temperature
+LiveCountssock_Temp<- lm(data = salmon_sock, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCountssock_Temp)
+#Plot linear regression
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCountssock_Temp)
+par(mfrow = c(1,1))
+
+#Correlation between new redd counts and temperature
+NewReddCountssock_Temp<- lm(data = salmon_sock, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCountssock_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCountssock_Temp)
+par(mfrow = c(1,1))
+```
+
+```{r Multiple Regression Analysis for Live Count, include=FALSE}
+
+# Create AIC to determine what set of variables is the live count predictor
+TPAIC <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
+step(TPAIC)
+# Define the multiple regression model
+model <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
+
+# Fit the model
+summary(model)
+```
+```{r Multiple Regression New Redd Counts}
+# Create AIC to determine what set of variables is the live count predictor
+TPAIC2 <- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit + Month)
+step(TPAIC2)
+# Define the multiple regression model
+model2 <- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit + Month)
+
+# Fit the model
+summary(model)
+
+#Because Sockeye New Redd was the only factor with not enough evidence to reject the null, this was because of a lack of temperature data for sockeye salmon
+#Run Sockeye New Redd and Live Count Single Regression
+#Redd Count
+NewReddCountssock_month<- lm(data = salmon_sock, NewReddCount ~ Month)
+summary(NewReddCountssock_month)
+plot(NewReddCountssock_month)
+#Live Count
+LiveCountssock_month<- lm(data = salmon_sock, LiveTotal ~ Month)
+summary(LiveCountssock_month)
+plot(LiveCountssock_month)
+```
+
+```{r Salmon Temp Time Series Analysis, include=FALSE}
+
+#Generate time series for monthly average live counts 
+f_month <- month(first(salmon_live_int$Month))
+f_year <- year(first(salmon_live_int$Year))
+salmonlive.monthly.ts <- ts(salmon_live_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+salmon_data_decomp <- stl(salmonlive.monthly.ts, s.window = "periodic")
+plot(salmon_data_decomp)
+# Run SMK test
+salmon_data_trend <- Kendall::SeasonalMannKendall(salmonlive.monthly.ts)
+# Inspect results
+salmon_data_trend
+summary(salmon_data_trend)
+
+#Generate time series for monthly average new redd counts 
+f_month <- month(first(salmon_redd_int$Month))
+f_year <- year(first(salmon_redd_int$Year))
+salmonredd.monthly.ts <- ts(salmon_redd_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+redd_data_decomp <- stl(salmonredd.monthly.ts, s.window = "periodic")
+plot(redd_data_decomp)
+# Run SMK test
+redd_data_trend <- Kendall::SeasonalMannKendall(salmonredd.monthly.ts)
+# Inspect results
+redd_data_trend
+summary(redd_data_trend)
+
+```
+
+```{r Species Time Series Analysis, include=FALSE}
+
+# Generate time series for Chinook monthly average live counts 
+f_month <- month(first(chin_data_int$Month))
+f_year <- year(first(chin_data_int$Year))
+chin_live.monthly.ts <- ts(chin_data_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+chin_data_decomp <- stl(chin_live.monthly.ts, s.window = "periodic")
+plot(chin_data_decomp)
+# Run SMK test
+chin_live_data_trend <- Kendall::SeasonalMannKendall(chin_live.monthly.ts)
+# Inspect results
+chin_live_data_trend
+summary(chin_live_data_trend)
+
+# Generate time series for Chinook monthly average redd counts 
+f_month <- month(first(chin_data_int$Month))
+f_year <- year(first(chin_data_int$Year))
+chin_redd.monthly.ts <- ts(chin_data_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+chin_redd_data_decomp <- stl(chin_redd.monthly.ts, s.window = "periodic")
+plot(chin_redd_data_decomp)
+# Run SMK test
+chin_redd_data_trend <- Kendall::SeasonalMannKendall(chin_redd.monthly.ts)
+# Inspect results
+chin_redd_data_trend
+summary(chin_redd_data_trend)
+
+# Generate time series for Coho monthly average live counts 
+f_month <- month(first(coho_data_int$Month))
+f_year <- year(first(coho_data_int$Year))
+coho_live.monthly.ts <- ts(coho_data_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+coho_data_decomp <- stl(coho_live.monthly.ts, s.window = "periodic")
+plot(coho_data_decomp)
+# Run SMK test
+coho_live_data_trend <- Kendall::SeasonalMannKendall(coho_live.monthly.ts)
+# Inspect results
+coho_live_data_trend
+summary(coho_live_data_trend)
+
+# Generate time series for Coho monthly average redd counts 
+f_month <- month(first(coho_data_int$Month))
+f_year <- year(first(coho_data_int$Year))
+coho_redd.monthly.ts <- ts(coho_data_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+coho_redd_data_decomp <- stl(coho_redd.monthly.ts, s.window = "periodic")
+plot(coho_redd_data_decomp)
+# Run SMK test
+coho_redd_data_trend <- Kendall::SeasonalMannKendall(coho_redd.monthly.ts)
+# Inspect results
+coho_redd_data_trend
+summary(coho_redd_data_trend)
+
+# Generate time series for Sockeye monthly average live counts 
+f_month <- month(first(sock_data_int$Month))
+f_year <- year(first(sock_data_int$Year))
+sock_live.monthly.ts <- ts(sock_data_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+sock_data_decomp <- stl(sock_live.monthly.ts, s.window = "periodic")
+plot(sock_data_decomp)
+# Run SMK test
+sock_live_data_trend <- Kendall::SeasonalMannKendall(sock_live.monthly.ts)
+# Inspect results
+sock_live_data_trend
+summary(sock_live_data_trend)
+
+# Generate time series for Sockeye monthly average redd counts 
+f_month <- month(first(sock_data_int$Month))
+f_year <- year(first(sock_data_int$Year))
+sock_redd.monthly.ts <- ts(sock_data_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+sock_redd_data_decomp <- stl(sock_redd.monthly.ts, s.window = "periodic")
+plot(sock_redd_data_decomp)
+# Run SMK test
+sock_redd_data_trend <- Kendall::SeasonalMannKendall(sock_redd.monthly.ts)
+# Inspect results
+sock_redd_data_trend
+summary(sock_redd_data_trend)
+```
 
 ## Summary & Conclusions 
 
