@@ -288,14 +288,13 @@ plot(LiveCountssock_month)
 #Add linear interpolation to missing data Live Count
 salmon_data_interpolated <- 
   salmon_data %>% 
-  mutate(LiveTotal = zoo::na.approx(LiveTotal, SurveyDate)) %>% 
-  mutate(NewReddCount = zoo::na.approx(NewReddCount, SurveyDate))
+  mutate(LiveTotal = zoo::na.approx(LiveTotal, SurveyDate))
 #Create new data frame
 salmon_data1 <- salmon_data_interpolated %>%
     mutate(Year = year(SurveyDate), Month = month(SurveyDate)) %>% #Ask about this in class
  group_by(Year, Month) %>%
 # Calculate the mean live and new redd count for each month
-  summarize(MeanLive = mean(LiveTotal), MeanRedd = mean(NewReddCount)) %>%
+  summarize(MeanLive = mean(LiveTotal)) %>%
 # Create a new Date column with the first day of each month
   mutate(Date = ymd(paste(Year, Month, "01", sep = "-")))
 # Arrange the data by Date if needed
@@ -366,6 +365,7 @@ redd_data_trend
 summary(redd_data_trend)
 
 ```
+
 ```{r Time Series Analysis Interpolation & Data Preparation for Salmon Species}
 
 # Add linear interpolation to missing data Chinook Live Count
