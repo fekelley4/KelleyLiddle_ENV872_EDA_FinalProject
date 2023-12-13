@@ -43,31 +43,56 @@ theme_set(salmon_theme)
 ```{r Import Data, include=FALSE}
 salmon_data <- read.csv(here("Data","Raw","salmon_data.csv"),
   stringsAsFactors = TRUE)
-#Add Month column to data
+#Read in appropriate column as date object. 
+salmon_data$SurveyDate <- as.Date(salmon_data$SurveyDate)
+#Add Month column to data for multiple regression analysis later
 salmon_data$Month <- as.Date(month(salmon_data$SurveyDate))
 
 salmon_chin <- read.csv(here("Data","Processed","ChinookSalmon_ProcessedData.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_chin$SurveyDate <- as.Date(salmon_chin$SurveyDate)
+
 salmon_coho <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_coho$SurveyDate <- as.Date(salmon_coho$SurveyDate)
+
 salmon_sock <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_sock$SurveyDate <- as.Date(salmon_sock$SurveyDate)
+
 salmon_live_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_LiveCountInterpolation.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_live_int$Date <- as.Date(salmon_live_int$Date)
+
 salmon_redd_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_NewReddCountInterpolation.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_live_int$Date <- as.Date(salmon_live_int$Date)
+
 chin_data_int <- read.csv(here("Data","Processed","ChinookSalmon_ProcessedData_Interpolation.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+chin_data_int$Date <- as.Date(chin_data_int$Date)
+
 coho_data_int <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData_Interpolation.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+coho_data_int$Date <- as.Date(coho_data_int$Date)
+
 sock_data_int <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData_Interpolation.csv"),
   stringsAsFactors = TRUE)
+#Read in date column as date object. 
+sock_data_int$Date <- as.Date(sock_data_int$Date)
 
 ```
 
 ## Exploratory Analysis 
 
-```{r Total Counts Graphs, include=FALSE}
+```{r Total Live Bar Graph, fig.cap="Total live salmon observed from 1973 to present day", echo=FALSE}
 
 #Total salmon live count bar graph. 
 ggplot(salmon_data, aes(x = RunYear, y = LiveTotal, fill = Species)) +
