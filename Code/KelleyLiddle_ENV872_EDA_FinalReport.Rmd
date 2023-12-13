@@ -1,0 +1,85 @@
+---
+title: "Salmon Population Dynamics in Washington State"
+subtitle: "https://github.com/fekelley4/KelleyLiddle_ENV872_EDA_FinalProject.git"
+author: "Fiona Kelley & David Liddle"
+date: "2023-12-12"
+output: pdf_document
+toc: true
+---
+## Rationale 
+Salmon species native to Washington waters are critical components in maintaining economic growth, environmental health, and cultural identities. Salmon fisheries annually generate 23,000 jobs and millions for the State economy from harvest, recreation, and tourism. As a keystone species, salmon support a diverse ecosystem, sustaining 138 wildlife species such as orcas. Additionally, the unique migratory patterns of salmon species facilitates the transport and exchange of nutrients between freshwater and saltwater environments (Washington State Recreation & Conservation Office, 2022).
+
+Salmon species are subject to various anthropogenic and natural stressors due to its exposure to different environments. Within Washington, 14 salmon population groups are listed as threatened or endangered under the Endangered Species Act. Increased water temperatures, as a result of climate change, habitat degradation, infrastructure development, overfishing, and pollution are placing immense pressures on salmon populations; these stressors are limiting breeding grounds, disrupting migration, altering genetic diversity, and depleting fish stocks (Washington State Recreation & Conservation Office, 2022). Utilizing a dataset monitoring the status of salmon fisheries from the Washington Department of Fish and Wildlife, salmon abundance and spawning is examined in relation to temperature and seasonal components. The objective of this analysis is to evaluate changes in counts of live salmon and redds (nests) for Chinook, Coho, and Sockeye salmon, species possessing population groups listed as threatened or endangered under the ESA.  
+
+## Research Questions
+Question 1: How has the observation of live salmon and new redd counts changed over the past 50 years? Do certain species exhibit more significant changes in live counts or redd counts compared to others?
+
+Question 2: To what extent do factors such as water temperature and seasonality influence salmon stock counts, and is there variation in these influences between different salmon species?
+
+## Dataset Information 
+The selected dataset is a Spawning Ground Survey (SGS) database obtained from the Washington Department of Fish and Wildlife. The enormous survey, possessing 59 columns, contains observations of salmon status from 1930 to present day across Washington State streams. The data is displayed via several organizational methods, including latitude and longitude coordinates, watershed code, stream name, and mileage upstream. The data was collected irregularly, meaning that not every location was sampled on a regular basis, nor was every single component sampled in each event. Thus, the data had to be wrangled carefully, in order to draw meaningful trends from the data.
+
+```{r setup, include=FALSE}
+# Importing the necessary packages for data analysis 
+library(tidyverse);library(lubridate);library(here);library(ggplot2);
+library(cowplot);library(knitr); library(agricolae);library(dplyr)
+library(here)
+```
+
+```{r Set Theme, include=FALSE}
+# Build ggplot theme
+salmon_theme <- theme_classic(base_size = 14) +
+theme(axis.text = element_text(color = "black"),
+legend.position = "right",
+panel.grid.minor = element_line(color = "gray", linetype = "solid"),
+panel.grid.major = element_line(color = "gray", linetype = "solid"),
+legend.background = element_rect(fill = "gray"))
+#Set the theme
+theme_set(salmon_theme)
+```
+## Data Wrangling
+
+
+```{r Import Data, include=FALSE}
+salmon_data <- read.csv(here("Data","Raw","salmon_data.csv"),
+  stringsAsFactors = TRUE)
+```
+
+```{r Split Dataset by Species + Additional Wrangling, include=FALSE}
+#Add Month column to data
+salmon_data$Month <- as.Date(month(salmon_data$SurveyDate))
+#Split dataset by species
+salmon_chin <- salmon_data %>% filter(SpeciesAbbr=="CHIN")
+salmon_sock <- salmon_data %>% filter(SpeciesAbbr=="SOCK")
+salmon_coho <- salmon_data %>% filter(SpeciesAbbr=="COHO")
+```
+
+## Exploratory Analysis 
+
+```{r Calculate and Graph Average Count Data}
+
+Average_LiveCount <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by Species and Run Year
+  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE)) #find average live count
+
+Average_NewRedd <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by Species and Run Year
+  summarise(Avg_NewRedd = mean(NewReddCount, na.rm = TRUE)) #find average new redd count
+
+ggplot(Average_LiveCount, aes(x = RunYear, y = Avg_Live, fill = SpeciesAbbr)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average Live Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+ggplot(Average_NewRedd, aes(x = RunYear, y = Avg_NewRedd, fill = SpeciesAbbr)) +
+  geom_col(position = "dodge") +
+  labs(title = "Average New Redd Salmon Count from 1973 to 2023",
+       x = "Year", y = "Count")
+
+```
+
+## Analysis
+
+## Summary & Conclusions 
+
+## Works Cited 
