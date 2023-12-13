@@ -1,0 +1,544 @@
+---
+title: "Salmon Population Dynamics in Washington State"
+author: "Fiona Kelley & David Liddle"
+date: "2023-12-12"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+subtitle: https://github.com/fekelley4/KelleyLiddle_ENV872_EDA_FinalProject.git
+---
+
+## Rationale 
+Salmon species native to Washington waters are critical components in maintaining economic growth, environmental health, and cultural identities. Salmon fisheries annually generate 23,000 jobs and millions for the State economy from harvest, recreation, and tourism. As a keystone species, salmon support a diverse ecosystem, sustaining 138 wildlife species such as orcas. Additionally, the unique migratory patterns of salmon species facilitates the transport and exchange of nutrients between freshwater and saltwater environments (Washington State Recreation & Conservation Office, 2022).
+
+Salmon species are subject to various anthropogenic and natural stressors due to its exposure to different environments. Within Washington, 14 salmon population groups are listed as threatened or endangered under the Endangered Species Act. Increased water temperatures, as a result of climate change, habitat degradation, infrastructure development, overfishing, and pollution are placing immense pressures on salmon populations; these stressors are limiting breeding grounds, disrupting migration, altering genetic diversity, and depleting fish stocks (Washington State Recreation & Conservation Office, 2022). Utilizing a dataset monitoring the status of salmon fisheries from the Washington Department of Fish and Wildlife, salmon abundance and spawning is examined in relation to temperature and seasonal components. The objective of this analysis is to evaluate changes in counts of live salmon and redds (nests) for Chinook, Coho, and Sockeye salmon, species possessing population groups listed as threatened or endangered under the ESA.  
+
+## Research Questions
+Question 1: How has the observation of live salmon and new redd counts changed over the past 50 years? Do certain species exhibit more significant changes in live counts or redd counts compared to others?
+
+Question 2: To what extent do factors such as water temperature and seasonality influence salmon stock counts, and is there variation in these influences between different salmon species?
+
+## Dataset Information 
+The selected dataset is a Spawning Ground Survey (SGS) database obtained from the Washington Department of Fish and Wildlife. The enormous survey, possessing 59 columns, contains observations of salmon status from 1930 to present day across Washington State streams. The data is displayed via several organizational methods, including latitude and longitude coordinates, watershed code, stream name, and mileage upstream. The data was collected irregularly, meaning that not every location was sampled on a regular basis, nor was every single component sampled in each event. Thus, the data had to be wrangled carefully, in order to draw meaningful trends from the data.
+
+```{r setup, include=FALSE}
+# Importing the necessary packages for data analysis 
+library(tidyverse);library(lubridate);library(here);library(ggplot2);
+library(cowplot);library(knitr); library(agricolae);library(dplyr)
+library(here);library(cowplot);library(sf);library(mapview)
+```
+
+```{r Set Theme, include=FALSE}
+# Build ggplot theme
+salmon_theme <- theme_classic(base_size = 14) +
+theme(axis.text = element_text(color = "black"),
+legend.position = "right",
+panel.grid.minor = element_line(color = "gray", linetype = "solid"),
+panel.grid.major = element_line(color = "gray", linetype = "solid"),
+legend.background = element_rect(fill = "gray"))
+#Set the theme
+theme_set(salmon_theme)
+```
+## Data Wrangling
+The downloaded dataset included the observation date, salmon species, observation counts, and redd counts. The ‘SurveyDate’ column was classified as a date and unnecessary columns were removed from the data frame. The data was then filtered to only include observations between the years 1973-2023, and to only include observations of coho, chinook, and sockeye salmon. This was to ensure better analysis as much of the data before 1970 was incomplete, as well as reduce the dataframe down to a manageable size. The data was also split into several sub-dataframes. Missing data was linearly interpolated for the time series analysis to ensure smoothness. Additionally, several sub-dataframes were created to isolate species-specific observations. 
+
+```{r Import Data, include=FALSE}
+salmon_data <- read.csv(here("Data","Raw","salmon_data.csv"),
+  stringsAsFactors = TRUE)
+#Read in appropriate column as date object. 
+salmon_data$SurveyDate <- as.Date(salmon_data$SurveyDate)
+#Add Month column to data for multiple regression analysis later
+salmon_data$Month <- as.Date(month(salmon_data$SurveyDate))
+
+salmon_chin <- read.csv(here("Data","Processed","ChinookSalmon_ProcessedData.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_chin$SurveyDate <- as.Date(salmon_chin$SurveyDate)
+
+salmon_coho <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_coho$SurveyDate <- as.Date(salmon_coho$SurveyDate)
+
+salmon_sock <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_sock$SurveyDate <- as.Date(salmon_sock$SurveyDate)
+
+salmon_live_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_LiveCountInterpolation.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_live_int$Date <- as.Date(salmon_live_int$Date)
+
+salmon_redd_int <- read.csv(here("Data","Processed","Salmon_ProcessedData_NewReddCountInterpolation.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+salmon_live_int$Date <- as.Date(salmon_live_int$Date)
+
+chin_data_int <- read.csv(here("Data","Processed","ChinookSalmon_ProcessedData_Interpolation.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+chin_data_int$Date <- as.Date(chin_data_int$Date)
+
+coho_data_int <- read.csv(here("Data","Processed","CohoSalmon_ProcessedData_Interpolation.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+coho_data_int$Date <- as.Date(coho_data_int$Date)
+
+sock_data_int <- read.csv(here("Data","Processed","SockeyeSalmon_ProcessedData_Interpolation.csv"),
+  stringsAsFactors = TRUE)
+#Read in date column as date object. 
+sock_data_int$Date <- as.Date(sock_data_int$Date)
+
+StreamMap_data <- st_read(here("Data", "Raw", "Washington_Streams.gdb"))
+```
+
+## Exploratory Analysis 
+This map of stream data in Washington state depicts the study area of the dataset. 
+
+```{r Map of Streams, fig.cap="Figure 1: Spatial distribution of streams in Washington.", echo=FALSE, warning=FALSE}
+
+mapView(StreamMap_data)
+
+```
+Figure 1: Spatial distribution of streams in Washington.
+
+
+
+This scatterplot is a visualization of all of the water temperatures measured where Sockeye, Chinook, and Coho Salmon were surveyed. Contrary to what was expected, the plot shows a decrease in water temperature over time. Upon further inspection, the data revealed that temperature data was collected infrequently and irregularly over the timeframe of the dataset. This sudden drop could be attributed to a change in the rivers that were sampled, the number of rivers sampled, or the month they were sampled. However, because the dataset is so large, there are enough measurements to test for correlations between temperature and other metrics.
+```{r Annual Stream Temperature Scatter Plot, fig.cap="Figure 2: Reported stream temperatures accompanying salmon observations from 1973 to 2023.", echo=FALSE, warning=FALSE}
+
+# Calculate average water temperature.
+AnnualStreamTemp_salmon <- ggplot(salmon_data, aes(x = RunYear, y = WaterTempFarenheit)) +
+  geom_point(size = 0.5) +
+  labs(title = "Washington Stream Temperature Observations", 
+       x = "Year",
+       y = "Stream Temperature (Fahrenheit)")
+AnnualStreamTemp_salmon
+
+```
+
+
+
+Figure 3 shows the total live salmon observed each year, classified by species. In general the largest proportion of live salmon observed tends to be the Sockeye Salmon. The data is variable, characterized by a boom and bust pattern. However, live salmon observed has shown a concerning trend in recent years, remaining consistently low from 2014 to the present day. Sockeye salmon have also shown a sharp decline in observation across the study. They fell to their lowest observed levels since 1973 in 2014, making up a smaller proportion of the total count than Chinook or Coho for the first time. Both Chinook and Coho Salmon have increased in observation since the start of the study period. Chinook were originally less commonly observed than Coho, but were the most commonly observed species for several years after 2010. 
+
+The decline in Sockeye Salmon might be attributed to the negligible number of new  salmon redds observed (Figure 4). Chinook salmon have the highest new redds observed each year, which in tandem with the lower observation count, may indicate a low reproductive success rate for that species.
+
+```{r Total Live Bar Graph, fig.cap="Figure 3: Total live salmon observed from 1973 to present day.", echo=FALSE, warning=FALSE}
+
+#Total salmon live count bar graph. 
+ggplot(salmon_data, aes(x = RunYear, y = LiveTotal, fill = Species)) +
+  geom_bar(stat = "identity", width = 0.9) +
+  labs(title = "Total Salmon Live Counts per Year",
+       x = "Run Year",
+       y = "Total Live Count", 
+       fill = "Salmon Species") +
+  # Utilized ChatGPT to help format the numbers on the y-axis 
+  scale_y_continuous(labels = scales::comma_format(scale = 1e3)) 
+
+```
+
+```{r Total New Redd Bar Graph, fig.cap="Figure 4: Total new salmon redds observed from 1973 to present day.", echo=FALSE, warning=FALSE}
+#Total new redd count bar graph. 
+TotalNewReddPlot <- ggplot(salmon_data, aes(x = RunYear, y = NewReddCount, fill = Species)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  labs(title = "Total New Salmon Redds per Year",
+       x = "Run Year",
+       y = "Total Redd Count", 
+       fill = "Salmon Species") +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e3))
+TotalNewReddPlot
+```
+
+
+
+The exploration of Washington salmon population dynamics inspired further analysis on live salmon observations and new redd counts for the three selected species. In particular, the analysis focuses on understanding how temporal and seasonal components influence the following population variables: total live counts, total new redd counts, live counts for each of the three species, and new redd counts for each of the three species. 
+
+## Analysis
+Discussion of the Linear Regression Results
+
+A linear regression was performed on each of the population variables to determine the influence of temperature. 
+
+H0: Stream temperature has no effect on salmon live counts and/or new salmon redd counts. 
+Ha: Stream temperature influences salmon live counts and/or new salmon redd counts. 
+
+Linear regression analysis of observed live count to water temperature indicated a strong correlation between the two. With a p-value of 2.2e-16, we reject the null hypothesis that water temperature has no effect on the observed live count of salmon (Figure 5). This process was repeated with new redd counts and the same p-value was obtained (Figure 6).
+
+```{r Linear Regression for Salmon Counts and Temperature, fig.cap="Figure 5: Linear regression results of live counts and stream temperature.", echo=FALSE, warning=FALSE}
+#All Species Linear Regression
+#Correlation between live counts and temperature
+LiveCounts_Temp<- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit)
+#Plot linear regression
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCounts_Temp)
+par(mfrow = c(1,1))
+
+```
+
+```{r Linear Regression for Redd Counts and Temperature, fig.cap="Figure 6: Linear regression results of redd counts and stream temperature.", echo=FALSE, warning=FALSE}
+#All Species Linear Regression
+#Correlation between new redd counts and temperature
+NewReddCounts_Temp<- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit)
+#Plot linear regression
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCounts_Temp)
+par(mfrow = c(1,1))
+```
+
+```{r Linear Regression for Chinook Counts and Temperature, include=FALSE}
+#Chinook Linear Regression
+#Correlation between live counts and temperature
+LiveCountschin_Temp<- lm(data = salmon_chin, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCountschin_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCountschin_Temp)
+par(mfrow = c(1,1))
+```
+
+```{r Linear Regression for Chinook Redd Counts and Temperature, include=FALSE}
+#Chinook Linear Regression
+#Correlation between new redd counts and temperature
+NewReddCountschin_Temp<- lm(data = salmon_chin, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCountschin_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCountschin_Temp)
+par(mfrow = c(1,1))
+
+```
+
+```{r Linear Regression for Coho Counts and Temperature, include=FALSE}
+#Coho Linear Regression
+#Correlation between live counts and temperature
+LiveCountscoho_Temp<- lm(data = salmon_coho, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCountscoho_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCountscoho_Temp)
+par(mfrow = c(1,1))
+
+```
+
+```{r Linear Regression for Coho Redd Counts and Temperature, include=FALSE}
+#Coho Linear Regression
+#Correlation between new redd counts and temperature
+NewReddCountscoho_Temp<- lm(data = salmon_coho, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCountscoho_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCountscoho_Temp)
+par(mfrow = c(1,1))
+
+```
+
+```{r Linear Regression for Sockeye Counts and Temperature, include=FALSE}
+#Sockeye Linear Regression
+#Correlation between live counts and temperature
+LiveCountssock_Temp<- lm(data = salmon_sock, LiveTotal ~ WaterTempFarenheit)
+summary(LiveCountssock_Temp)
+#Plot linear regression
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(LiveCountssock_Temp)
+par(mfrow = c(1,1))
+
+```
+
+```{r Linear Regression for Sockeye Redd Counts and Temperature, include=FALSE}
+#Sockeye Linear Regression
+#Correlation between new redd counts and temperature
+NewReddCountssock_Temp<- lm(data = salmon_sock, NewReddCount ~ WaterTempFarenheit)
+summary(NewReddCountssock_Temp)
+par(mfrow = c(2,2), mar=c(4,4,4,4))
+plot(NewReddCountssock_Temp)
+par(mfrow = c(1,1))
+
+```
+
+
+
+To further the analysis, the same regressions were run while breaking down the data into species-specific information (Table 1). These regressions all obtained a similarly low p-value, indicating that water temperature is strongly correlated with all salmon species and redd counts. The one exception to this was the Sockeye salmon new redd count, with a p-value of 0.7626, indicating a failure to reject the null hypothesis. Further investigation revealed that the temperature data for Sockeye salmon was particularly incomplete, thus additional data is needed to ascertain whether water temperature is truly correlated to Sockeye Salmon redd count.
+
+The multiple R-Squared values for all of the regressions were extremely low, revealing that while there was a significant correlation, the data was highly variable in a manner that could not be explained by temperature. The figures below further illustrate the high level of variability in the data.
+
+
+
+Table 1: The results of linear regressions examining the relationship between salmon counts and water temperature.
+```{r P-values Summarized, fig.cap="Table 1: The results of linear regressions examining the relationship between salmon counts and water temperature.", echo=FALSE, warning=FALSE}
+LinearRegressionResults <- data.frame(
+  Comparison = c(
+    "Total Live vs. Water Temperature",
+    "New Redd Counts vs. Water Temperature",
+    "Chinook Live Count vs. Water Temperature",
+    "Chinook New Redd Count vs. Water Temperature",
+    "Coho Live Count vs. Water Temperature",
+    "Coho New Redd Count vs. Water Temperature",
+    "Sockeye Live Count vs. Water Temperature",
+    "Sockeye New Redd Count vs. Water Temperature"
+  ),
+  P_Value = c(
+    2.2e-16, 2.2e-16, 2.2e-16, 2.2e-16,
+    0.0004281, 4.951e-10, 0.01719, 0.7626
+  ),
+  Multiple_R_Squared_Value = c(
+    0.01579, 0.02643, 0.02923, 0.0462,
+    0.0003223, 0.01433, 0.1025, 0.009547
+  )
+)
+
+LinearRegressionResults
+
+```
+
+
+
+Multiple Regression Analysis
+
+Multiple Regression Analysis aimed to assess whether water temperature or the month played a more influential role in determining salmon live and redd counts. The hypothesis considered the potential for salmon migration during specific seasons, leading to increased observation rates.
+
+The multiple regression analysis indicated a significant positive relationship between water temperature and live counts, while the month did not significantly predict total live count. The F-statistic, testing the model's overall significance, yielded a value of 54.89 with a p-value < 2.2e-16, signifying the significant relationship of at least one predictor to the live total. However, the model's overall explanatory power was limited due to low R-squared values, suggesting that the month did not significantly contribute to predicting live counts.
+
+Subsequent subset analyses focusing on new redd counts and species-specific data revealed consistent results without substantial deviation from the initial analysis. Detailed outcomes of Akaike Information Criterion (AIC) functions are provided in Table 2 and Table 3 for total live salmon counts and total redd counts. 
+
+```{r Multiple Regression Analysis for Live Count, include=FALSE}
+
+# Create AIC to determine what set of variables is the live count predictor
+Live_TempMonth_Regression <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
+step(Live_TempMonth_Regression)
+# Define the multiple regression model
+model <- lm(data = salmon_data, LiveTotal ~ WaterTempFarenheit + Month)
+
+# Fit the model
+summary(model)
+```
+
+
+Table 2: The AIC determining the best set of variables for predicting  salmon live counts.
+```{r AIC Live Summarized, fig.cap="Table 2: The AIC determining the best set of variables for predicting  salmon live counts.", echo=FALSE, warning=FALSE}
+AICResults <- data.frame(
+  Variables = c(
+    "Month",
+    "None",
+    "Water Temperature"
+  ),
+  AIC = c(
+    68405, 68407, 68514
+  )
+)
+
+AICResults
+
+```
+
+```{r Multiple Regression New Redd Counts, include=FALSE}
+# Create AIC to determine what set of variables is the live count predictor
+SalmonReddAIC <- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit + Month)
+step(SalmonReddAIC)
+# Define the multiple regression model
+model2 <- lm(data = salmon_data, NewReddCount ~ WaterTempFarenheit + Month)
+# Fit the model
+summary(model2)
+```
+
+Table 3: The AIC determining the best set of variables for predicting salmon redd counts.
+```{r AIC Redd Summarized, fig.cap="Table 3: The AIC determining the best set of variables for predicting salmon redd counts.", echo=FALSE, warning=FALSE}
+AICResults2 <- data.frame(
+  Variables = c(
+    "Month",
+    "None",
+    "Water Temperature"
+  ),
+  AIC = c(
+    42556, 42558, 42699
+  )
+)
+
+AICResults2
+
+```
+
+
+
+Time Series & Seasonal Mann-Kendall Analysis
+
+Due to its assumption of a linear relationship between predictors and the response variable, a multiple regression analysis may not effectively capture seasonality if the association between month and live or new redd count is not strictly linear. Thus, a time series analysis and seasonal Mann-Kendall test was applied to all of the data subsets to determine if there was a non-linear seasonality component to the data.
+
+The low p-value results (p<0.05) shown in the table indicate that there is a strong seasonal component to all of the metrics. In addition to this, almost all of the tau values were negative as well. This implies that, over the seasons, there is a discernible pattern of decline in the number of live salmon and new redds observed per month. The only exception to this alarming trend is that of Coho new redd counts, which had a slightly positive tau value (tau =0.0968). The analyzed subsetted components with the lowest tau values were Sockeye and Chinook new redd count, highlighting the need for conservation intervention at this stage of the salmon life cycle.
+
+```{r Salmon Live Temp Time Series Analysis, fig.cap="Figure 7: Time series analysis on monthly average live counts.", echo=FALSE, warning=FALSE}
+
+#Generate time series for monthly average live counts 
+f_month <- month(first(salmon_live_int$Month))
+f_year <- year(first(salmon_live_int$Year))
+salmonlive.monthly.ts <- ts(salmon_live_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+salmon_data_decomp <- stl(salmonlive.monthly.ts, s.window = "periodic")
+plot(salmon_data_decomp)
+
+```
+
+```{r Salmon Redds Temp Time Series Analysis, fig.cap="Figure 8: Time series analysis on monthly average new redd counts.", echo=FALSE, warning=FALSE}
+
+#Generate time series for monthly average new redd counts 
+f_month <- month(first(salmon_redd_int$Month))
+f_year <- year(first(salmon_redd_int$Year))
+salmonredd.monthly.ts <- ts(salmon_redd_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+redd_data_decomp <- stl(salmonredd.monthly.ts, s.window = "periodic")
+plot(redd_data_decomp)
+
+```
+
+```{r Species Time Series Analysis, include=FALSE}
+# Run SMK test on total live counts
+salmon_data_trend <- Kendall::SeasonalMannKendall(salmonlive.monthly.ts)
+# Inspect results
+salmon_data_trend
+summary(salmon_data_trend)
+
+# Run SMK test on total new redds 
+redd_data_trend <- Kendall::SeasonalMannKendall(salmonredd.monthly.ts)
+# Inspect results
+redd_data_trend
+summary(redd_data_trend)
+
+# Generate time series for Chinook monthly average live counts 
+f_month <- month(first(chin_data_int$Month))
+f_year <- year(first(chin_data_int$Year))
+chin_live.monthly.ts <- ts(chin_data_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+chin_data_decomp <- stl(chin_live.monthly.ts, s.window = "periodic")
+plot(chin_data_decomp)
+# Run SMK test
+chin_live_data_trend <- Kendall::SeasonalMannKendall(chin_live.monthly.ts)
+# Inspect results
+chin_live_data_trend
+summary(chin_live_data_trend)
+
+# Generate time series for Chinook monthly average redd counts 
+f_month <- month(first(chin_data_int$Month))
+f_year <- year(first(chin_data_int$Year))
+chin_redd.monthly.ts <- ts(chin_data_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+chin_redd_data_decomp <- stl(chin_redd.monthly.ts, s.window = "periodic")
+plot(chin_redd_data_decomp)
+# Run SMK test
+chin_redd_data_trend <- Kendall::SeasonalMannKendall(chin_redd.monthly.ts)
+# Inspect results
+chin_redd_data_trend
+summary(chin_redd_data_trend)
+
+# Generate time series for Coho monthly average live counts 
+f_month <- month(first(coho_data_int$Month))
+f_year <- year(first(coho_data_int$Year))
+coho_live.monthly.ts <- ts(coho_data_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+coho_data_decomp <- stl(coho_live.monthly.ts, s.window = "periodic")
+plot(coho_data_decomp)
+# Run SMK test
+coho_live_data_trend <- Kendall::SeasonalMannKendall(coho_live.monthly.ts)
+# Inspect results
+coho_live_data_trend
+summary(coho_live_data_trend)
+
+# Generate time series for Coho monthly average redd counts 
+f_month <- month(first(coho_data_int$Month))
+f_year <- year(first(coho_data_int$Year))
+coho_redd.monthly.ts <- ts(coho_data_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+coho_redd_data_decomp <- stl(coho_redd.monthly.ts, s.window = "periodic")
+plot(coho_redd_data_decomp)
+# Run SMK test
+coho_redd_data_trend <- Kendall::SeasonalMannKendall(coho_redd.monthly.ts)
+# Inspect results
+coho_redd_data_trend
+summary(coho_redd_data_trend)
+
+# Generate time series for Sockeye monthly average live counts 
+f_month <- month(first(sock_data_int$Month))
+f_year <- year(first(sock_data_int$Year))
+sock_live.monthly.ts <- ts(sock_data_int$MeanLive,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+sock_data_decomp <- stl(sock_live.monthly.ts, s.window = "periodic")
+plot(sock_data_decomp)
+# Run SMK test
+sock_live_data_trend <- Kendall::SeasonalMannKendall(sock_live.monthly.ts)
+# Inspect results
+sock_live_data_trend
+summary(sock_live_data_trend)
+
+# Generate time series for Sockeye monthly average redd counts 
+f_month <- month(first(sock_data_int$Month))
+f_year <- year(first(sock_data_int$Year))
+sock_redd.monthly.ts <- ts(sock_data_int$MeanRedd,
+                   start=c(f_year,f_month),
+                   frequency=12)
+# Decompose monthly time series
+sock_redd_data_decomp <- stl(sock_redd.monthly.ts, s.window = "periodic")
+plot(sock_redd_data_decomp)
+# Run SMK test
+sock_redd_data_trend <- Kendall::SeasonalMannKendall(sock_redd.monthly.ts)
+# Inspect results
+sock_redd_data_trend
+summary(sock_redd_data_trend)
+```
+
+
+
+Table 4: The results of a seasonal Mann Kendall analysis.
+```{r MannKendall Results, fig.cap="Table 4: The results of a seasonal Mann Kendall analysis.",echo=FALSE, warning=FALSE}
+MannKendallResults <- data.frame(
+  Comparison = c(
+    "Total Live Count",
+    "New Redd Count",
+    "Chinook Live Count",
+    "Chinook New Redd Count",
+    "Coho Live Count",
+    "Coho New Redd Count",
+    "Sockeye Live Count",
+    "Sockeye New Redd Count"
+  ),
+  Tau_Value = c(
+    -0.248, -0.429, -0.149, -0.436,
+    0.0968, -0.108, -0.272, -0.413
+  ),
+  Two_Sided_P_Value = c(
+    4.4409e-16, 2.22e-16, 6.6211e-06, 2.22e-16,
+    0.0042418, 0.0014466, 2.8522e-10, 2.22e-16
+  )
+)
+
+MannKendallResults
+
+```
+
+
+
+
+
+## Summary & Conclusions 
+This study explores the role of salmon species in Washington's economic, environmental, and cultural landscape, addressing challenges posed by various stressors. Utilizing a Spawning Ground Survey (SGS) dataset from the Washington Department of Fish and Wildlife, the analysis focused on live and redd counts on the threatened or endangered Chinook, Coho, and Sockeye salmon. Initial exploratory analysis revealed unexpected temperature fluctuations and concerning declines in live salmon counts. Linear regression affirmed a strong correlation between water temperature and salmon counts but with limited explanatory power in the data variance. Multiple regression confirmed that water temperature, not month, was the primary variable correlating to salmon live and redd counts. A Seasonal Mann-Kendall test exposed a negative tau trend for almost all counts of live salmon and all new redd counts, highlighting the significance of addressing seasonality. These findings underscore the complex dynamics of salmon populations, emphasizing the need for conservation efforts to address declining trends, specifically for salmon redds.
+
+## Works Cited
+
+Kenton, Will. “What Is Overcapitalization? Definition, Causes, and Example.” Investopedia, Investopedia, 24 Apr. 2022, www.investopedia.com/terms/o/overcapitalization.asp#:~:text=The%20term%20overcapitalization%20refers%20to,the%20value%20of%20its%20assets. 
+
+“State of Salmon.” Washington State Recreation and Conservation Office , Governor’s Salmon Recovery Office, stateofsalmon.wa.gov/wp-content/uploads/2023/02/SOS-ExecSummary-2022.pdf. Accessed 13 Dec. 2023. 
+
+“Stock Smart - Status, Management, Assessments & Resource Trends .” Stock Smart, NOAA Fisheries, apps-st.fisheries.noaa.gov/stocksmart?stockname=Atlantic+cod+-+Gulf+of+Maine&stockid=10508. Accessed 8 Dec. 2023. 
+
+Wdfw. “WDFW-SGS: Data.WA: State of Washington.” Data.WA.Gov, 13 Dec. 2023, data.wa.gov/Natural-Resources-Environment/WDFW-SGS/idwx-fext/about_data. 
+
+“Why Recover Salmon?” State of Salmon, Washington State Recreation and Conservation Office , Governor’s Salmon Recovery Office, 17 Feb. 2023, stateofsalmon.wa.gov/executive-summary/why-recover-salmon/#:~:text=Salmon%20are%20central%20to%20Washington,and%20still%20rely%20on%20salmon. 
+
