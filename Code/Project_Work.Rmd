@@ -36,6 +36,17 @@ salmon_data$Month <- as.Date(month(salmon_data$SurveyDate))
 salmon_chin <- salmon_data %>% filter(SpeciesAbbr=="CHIN")
 salmon_sock <- salmon_data %>% filter(SpeciesAbbr=="SOCK")
 salmon_coho <- salmon_data %>% filter(SpeciesAbbr=="COHO")
+
+#export separated species data 
+write.csv(
+  salmon_chin, row.names = FALSE, file = 
+    "./Data/Processed/ChinookSalmon_ProcessedData.csv")
+write.csv(
+  salmon_coho, row.names = FALSE, file = 
+    "./Data/Processed/CohoSalmon_ProcessedData.csv")
+write.csv(
+  salmon_sock, row.names = FALSE, file = 
+    "./Data/Processed/SockeyeSalmon_ProcessedData.csv")
 ```
 
 ```{r Calculate and Graph Average Count Data}
@@ -138,6 +149,48 @@ ggplot(AverageNewRedd_Coho, aes(x = RunYear, y = Avg_NewRedd)) +
        x = "Year", y = "Count")
 
 ```
+```{r Salmon Boxplots}
+
+#Boxplot of total live salmon counts. 
+LiveSalmon_boxplot <- ggplot(salmon_data, 
+aes( x = RunYear, y = LiveTotal, color = Species)) +
+geom_boxplot(na.rm = TRUE) + 
+  #Found this function on ChatGPT, it put the months in correct order
+   labs(title = "Salmon Populations from 1973 to 2023", #Create title and label axes
+       x = "Year",
+       y = "Salmon Live Count", color = "Species")
+LiveSalmon_boxplot
+
+Average_LiveCount <- salmon_data %>%
+  group_by(SpeciesAbbr, RunYear) %>% # Group the data by Species and Run Year
+  summarise(Avg_Live = mean(LiveTotal, na.rm = TRUE)) #find average live count
+
+LiveSalmon_boxplot <- ggplot(Average_LiveCount, 
+aes( x = RunYear, y = Avg_Live)) +
+geom_boxplot(na.rm = TRUE) + 
+  #Found this function on ChatGPT, it put the months in correct order
+   labs(title = "Salmon Populations from 1973 to 2023", #Create title and label axes
+       x = "Year",
+       y = "Salmon Live Count", color = "Species")
+LiveSalmon_boxplot
+#Caption & Print 
+caption_text <- "Figure 4: Live counts of salmon in Washington streams from 1973 to 2023."
+LiveSalmonBoxplot_caption <- plot_grid(LiveSalmon_boxplot, 
+                                      cowplot::draw_label(caption_text, size = 10), 
+                                      ncol = 1, align = "v")
+print(LiveSalmonBoxplot_caption)
+
+#Boxplot of salmon redds.  
+NewRedd_boxplot <- ggplot(salmon_data, 
+aes( x = RunYear, y = NewReddCount, color = Species)) +
+geom_boxplot(na.rm = TRUE) + 
+  #Found this function on ChatGPT, it put the months in correct order
+   labs(title = "New Salmon Redds Observed from 1973 to 2023", #Create title and label axes
+       x = "Year",
+       y = "Salmon Redds Count", color = "Species")
+NewRedd_boxplot
+
+```
 
 ```{r Average Annual Temperature}
 
@@ -232,80 +285,93 @@ summary(LiveCountssock_month)
 plot(LiveCountssock_month)
 ```
 ```{r Time Series Analysis Interpolation & Data Preparation}
-#8 Add linear interpolation to missing data Live Count
+#Add linear interpolation to missing data Live Count
 salmon_data_interpolated <- 
   salmon_data %>% 
-  mutate(LiveTotal = zoo::na.approx(LiveTotal, xout = SurveyDate)) %>% 
-  mutate(NewReddCount = zoo::na.approx(NewReddCount, xout = SurveyDate))#Learned xout from chatGPT, since we were getting an error message about a size mismatch when interpolating
-
-#9 Create new data frame
+  mutate(LiveTotal = zoo::na.approx(LiveTotal, SurveyDate)) %>% 
+  mutate(NewReddCount = zoo::na.approx(NewReddCount, SurveyDate))
+#Create new data frame
 salmon_data1 <- salmon_data_interpolated %>%
     mutate(Year = year(SurveyDate), Month = month(SurveyDate)) %>% #Ask about this in class
  group_by(Year, Month) %>%
-
 # Calculate the mean live and new redd count for each month
   summarize(MeanLive = mean(LiveTotal), MeanRedd = mean(NewReddCount)) %>%
-
 # Create a new Date column with the first day of each month
   mutate(Date = ymd(paste(Year, Month, "01", sep = "-")))
-
 # Arrange the data by Date if needed
 salmon_data1 <- arrange(salmon_data1, Date)
-
 # View the resulting data frame
 head(salmon_data1)
+
+#export interpolated data 
+write.csv(
+  salmon_data1, row.names = FALSE, file = "./Data/Processed/Salmon_ProcessedData_LiveCountInterpolation.csv")
+
+#Add linear interpolation to missing data in New Redd Count
+Redd_data_interpolated <- salmon_sock %>%
+  mutate(
+    NewReddCount = zoo::na.approx(NewReddCount, x = SurveyDate)
+  )
+# Create new data frame
+redd_data_int <- Redd_data_interpolated%>%
+    mutate(Year = year(SurveyDate), Month = month(SurveyDate)) %>%
+ group_by(Year, Month) %>%
+# Calculate the mean live and new redd count for each month
+  summarize(MeanRedd = mean(NewReddCount)) %>%
+# Create a new Date column with the first day of each month
+  mutate(Date = ymd(paste(Year, Month, "01", sep = "-")))
+# Arrange the data by Date if needed
+redd_data_int <- arrange(redd_data_int, Date)
+# View the resulting data frame
+head(redd_data_int)
+redd_data_int<- na.omit(redd_data_int)
+
+#export interpolated data 
+write.csv(
+  redd_data_int, row.names = FALSE, file = "./Data/Processed/Salmon_ProcessedData_NewReddCountInterpolation.csv")
 
 ```
 
 
 ```{r Time Series Analysis}
 
-#10 Generate time series for monthly average live counts 
+#Generate time series for monthly average live counts 
 f_month <- month(first(salmon_data1$Month))
 f_year <- year(first(salmon_data1$Year))
-
 salmonlive.monthly.ts <- ts(salmon_data1$MeanLive,
                    start=c(f_year,f_month),
                    frequency=12)
-
 # Decompose monthly time series
 salmon_data_decomp <- stl(salmonlive.monthly.ts, s.window = "periodic")
 plot(salmon_data_decomp)
-
 # Run SMK test
 salmon_data_trend <- Kendall::SeasonalMannKendall(salmonlive.monthly.ts)
-
 # Inspect results
 salmon_data_trend
 summary(salmon_data_trend)
 
-
-
 #Generate time series for monthly average new redd counts 
-f_month <- month(first(salmon_data1$Month))
-f_year <- year(first(salmon_data1$Year))
-
-salmonredd.monthly.ts <- ts(salmon_data1$MeanRedd,
+f_month <- month(first(redd_data_int$Month))
+f_year <- year(first(redd_data_int$Year))
+salmonredd.monthly.ts <- ts(redd_data_int$MeanRedd,
                    start=c(f_year,f_month),
                    frequency=12)
-
 # Decompose monthly time series
 redd_data_decomp <- stl(salmonredd.monthly.ts, s.window = "periodic")
-plot(salmon_data_decomp)
-
+plot(redd_data_decomp)
 # Run SMK test
 redd_data_trend <- Kendall::SeasonalMannKendall(salmonredd.monthly.ts)
-
-# Inspect results -- fail to reject H0 
+# Inspect results
 redd_data_trend
 summary(redd_data_trend)
 
 ```
 ```{r Time Series Analysis Interpolation & Data Preparation for Salmon Species}
+
 # Add linear interpolation to missing data Chinook Live Count
 chin_data_interpolated <- salmon_chin %>% 
-  mutate(LiveTotal = zoo::na.approx(LiveTotal, xout = SurveyDate)) %>% 
-  mutate(NewReddCount = zoo::na.approx(NewReddCount, xout = SurveyDate))
+  mutate(LiveTotal = zoo::na.approx(LiveTotal, SurveyDate)) %>% 
+  mutate(NewReddCount = zoo::na.approx(NewReddCount, SurveyDate))
 # Create new data frame
 chin_data_int <- chin_data_interpolated%>%
     mutate(Year = year(SurveyDate), Month = month(SurveyDate)) %>%
@@ -318,6 +384,7 @@ chin_data_int <- chin_data_interpolated%>%
 chin_data_int <- arrange(chin_data_int, Date)
 # View the resulting data frame
 head(chin_data_int)
+chin_data_int<- na.omit(chin_data_int)
 
 # Add linear interpolation to missing data Coho live count 
 coho_data_interpolated <- salmon_coho %>% 
@@ -356,6 +423,18 @@ sock_data_int <- arrange(sock_data_int, Date)
 # View the resulting data frame
 head(sock_data_int)
 sock_data_int<- na.omit(sock_data_int)
+
+#export interpolated data 
+write.csv(
+  chin_data_int, row.names = FALSE, file = 
+    "./Data/Processed/ChinookSalmon_ProcessedData_Interpolation.csv")
+write.csv(
+  coho_data_int, row.names = FALSE, file = 
+    "./Data/Processed/CohoSalmon_ProcessedData_Interpolation.csv")
+write.csv(
+  sock_data_int, row.names = FALSE, file = 
+    "./Data/Processed/SockeyeSalmon_ProcessedData_Interpolation.csv")
+
 ```
 
 
