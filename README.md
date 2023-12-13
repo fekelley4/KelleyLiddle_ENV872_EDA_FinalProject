@@ -1,9 +1,33 @@
 # KelleyLiddle_ENV872_EDA_FinalProject
 EDA Fall 2023 final project for Fiona Kelley &amp; David Liddle. 
 
+## Summary
+
+This repository contains the downloaded Spawning Ground Survey (SGS) database obtained from the Washington Department of Fish and Wildlife (WDFW). The dataset was analyzed to determine general population trends in Sockeye, Chinook, and Coho salmon. The effect of seasonality and water temperature on salmon abundance and reproduction was also analyzed to determine any potential correlation. 
+
+## Investigators
+
+David Liddle
+Fiona Kelley
+
+## Keywords
+
+Salmon, Chinook, Coho, Sockeye, Trend, Seasonality, Water Temperature, Reproduction, Population
+
+## Database Information
+
+All data was sourced from the WDFW via the State of Washington data website and downloaded on 11/29/2023. The data was wrangled and processed by the investigators and written into the Processed Data folder in the repository.
 
 
+## Folder structure, file formats, and naming conventions
 
+The folders in this repository are labeled as Output, Code, Data/Raw, and Data/Processed. All data files are meticulously downloaded or processed and are uniformly formatted in CSV. Our code is organized into both .Rmd files and .R files. The initial wrangled file was named salmon_data with additional suffixes to indicate its status as raw or processed, how it was processed, and which species was subsetted if relevant.
+
+## Metadata
+
+Raw Data:
+
+1. WDFW-SGS_20231022.csv
 
 | Column Name                     | Description                                                                                                       | Data Type          | Units                  |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------|--------------------|------------------------|
