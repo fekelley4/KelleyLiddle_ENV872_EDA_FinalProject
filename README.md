@@ -93,9 +93,7 @@ Raw Data:
 
 Wrangled Data: 
 1. salmon_data.csv
-
-
-   | Column Name         | Description                                                        | Data Type          | Units                  |
+| Column Name         | Description                                                        | Data Type          | Units                  |
 |---------------------|--------------------------------------------------------------------|--------------------|------------------------|
 | SurveyID            | The unique identifier assigned to each survey conducted in the study. | Number             | N/A                    |
 | SurveyDate          | The date and time on which the survey was conducted.                 | Date & Time        | YYYY-MM-DD HH:MM:SS   |
@@ -111,4 +109,3 @@ Wrangled Data:
 | NewReddCount        | The count of new redds (fish nests) observed during the survey.     | Number             | N/A                    |
 | PreviousReddCount   | The count of redds observed during previous surveys.                | Number             | N/A                    |
 | CombinedReddCount   | The combined count of new and previous redds observed during the survey. | Number          | N/A                    |
-
