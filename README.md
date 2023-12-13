@@ -91,21 +91,22 @@ Raw Data:
 | AdiposeClipUnknown_NoCWTBeep    | The numeric count of fish with an unknown status of adipose fins lacking coded wire tags, emitting a beeping signal. | Number             | N/A                    |
 | AdiposeClipUnknown_NoHead       | The numeric count of fish with an unknown status of adipose fins and no head, representing a specific observation during the survey. | Number  | N/A                    |
 
-Wrangled Data: 
+# Wrangled Data: 
 1. salmon_data.csv
-| Column Name         | Description                                                        | Data Type          | Units                  |
-|---------------------|--------------------------------------------------------------------|--------------------|------------------------|
-| SurveyID            | The unique identifier assigned to each survey conducted in the study. | Number             | N/A                    |
-| SurveyDate          | The date and time on which the survey was conducted.                 | Date & Time        | YYYY-MM-DD HH:MM:SS   |
-| WRIA                | The code representing the Water Resource Inventory Area.            | Number             | N/A                    |
-| StreamCode          | A distinctive code used to catalog and categorize the surveyed stream. | Plain Text         | N/A                    |
-| StreamName          | The name assigned to the surveyed stream.                            | Plain Text         | N/A                    |
-| WaterTemp           | The temperature of the stream water measured in Fahrenheit.          | Plain Text         | Degrees Fahrenheit      |
-| SpeciesAbbr         | Abbreviations representing the species observed or studied.         | Plain Text         | N/A                    |
-| Species             | The full names of the species observed or studied.                   | Plain Text         | N/A                    |
-| RunYear             | The year in which the observed fish species participated in their migration run. | Plain Text         | N/A                    |
-| LiveTotal           | The total count of live fish observed during the survey.            | Number             | N/A                    |
-| DeadTotal           | The total count of deceased fish observed during the survey.        | Number             | N/A                    |
-| NewReddCount        | The count of new redds (fish nests) observed during the survey.     | Number             | N/A                    |
-| PreviousReddCount   | The count of redds observed during previous surveys.                | Number             | N/A                    |
-| CombinedReddCount   | The combined count of new and previous redds observed during the survey. | Number          | N/A                    |
+
+| Column Name       | Description                                                        | Data Type    | Units                 |
+|-------------------|--------------------------------------------------------------------|--------------|-----------------------|
+| SurveyID          | The unique identifier assigned to each survey conducted in the study | Number       | N/A                   |
+| SurveyDate        | The date and time on which the survey was conducted                 | Date & Time  | YYYY-MM-DD HH:MM:SS  |
+| WRIA              | The code representing the Water Resource Inventory Area             | Number       | N/A                   |
+| StreamCode        | A distinctive code used to catalog and categorize the surveyed stream| Plain Text   | N/A                   |
+| StreamName        | The name assigned to the surveyed stream                             | Plain Text   | N/A                   |
+| WaterTemp         | The temperature of the stream water measured in Fahrenheit           | Plain Text   | Degrees Fahrenheit   |
+| SpeciesAbbr       | Abbreviations representing the species observed or studied          | Plain Text   | N/A                   |
+| Species           | The full names of the species observed or studied                    | Plain Text   | N/A                   |
+| RunYear           | The year in which the observed fish species participated in their migration run | Plain Text   | N/A                   |
+| LiveTotal         | The total count of live fish observed during the survey              | Number       | N/A                   |
+| DeadTotal         | The total count of deceased fish observed during the survey          | Number       | N/A                   |
+| NewReddCount      | The count of new redds (fish nests) observed during the survey       | Number       | N/A                   |
+| PreviousReddCount | The count of redds observed during previous surveys                  | Number       | N/A                   |
+| CombinedReddCount | The combined count of new and previous redds observed during the survey | Number    | N/A                   |
