@@ -21,7 +21,7 @@ All data was sourced from the WDFW via the State of Washington data website and 
 
 ## Folder structure, file formats, and naming conventions
 
-The folders in this repository are labeled as Output, Code, Data/Raw, and Data/Processed. All data files are meticulously downloaded or processed and are uniformly formatted in CSV. Our code is organized into both .Rmd files and .R files. The initial wrangled file was named salmon_data with additional suffixes to indicate its status as raw or processed, how it was processed, and which species was subsetted if relevant.
+The folders in this repository are labeled as Output, Code, Data/Raw, and Data/Processed. All data files are meticulously downloaded or processed and are uniformly formatted in CSV. Our code was saved as .Rmd files. The initial wrangled file was named salmon_data with additional suffixes to indicate its status as raw or processed, how it was processed, and which species was subsetted if relevant.
 
 ## Metadata
 
