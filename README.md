@@ -29,6 +29,8 @@ Raw Data:
 
 1. WDFW-SGS_20231022.csv
 
+The original dataset from WDFW was over 300 megabytes and was therefore too big to push to GitHub. The link to download to original dataset is provided here: https://data.wa.gov/Natural-Resources-Environment/WDFW-SGS/idwx-fext/about_data
+
 | Column Name                     | Description                                                                                                       | Data Type          | Units                  |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------|--------------------|------------------------|
 | SurveyID                        | The unique identifier assigned to each survey conducted in the study.                                             | Number             | N/A                    |
