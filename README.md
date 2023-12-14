@@ -21,7 +21,7 @@ All data was sourced from the WDFW via the State of Washington data website and 
 
 ## Folder structure, file formats, and naming conventions
 
-The folders in this repository are labeled as Output, Code, Data/Raw, and Data/Processed. All data files are meticulously downloaded or processed and are uniformly formatted in CSV. Our code is organized into both .Rmd files and .R files. The initial wrangled file was named salmon_data with additional suffixes to indicate its status as raw or processed, how it was processed, and which species was subsetted if relevant.
+The folders in this repository are labeled as Output, Code, Data/Raw, and Data/Processed. All data files are meticulously downloaded or processed and are uniformly formatted in CSV. Our code was saved as .Rmd files. The initial wrangled file was named salmon_data with additional suffixes to indicate its status as raw or processed, how it was processed, and which species was subsetted if relevant.
 
 ## Metadata
 
@@ -110,3 +110,128 @@ Raw Data:
 | NewReddCount      | The count of new redds (fish nests) observed during the survey       | Number       | N/A                   |
 | PreviousReddCount | The count of redds observed during previous surveys                  | Number       | N/A                   |
 | CombinedReddCount | The combined count of new and previous redds observed during the survey | Number    | N/A                   |
+
+3. Salmon_ProcessedData_LiveCountInterpolation.csv
+
+Missing live counts were interpolated before the calculation of the mean live count observations per month.
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Number  | N/A         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date | YYYY-MM-DD      |
+
+
+
+
+
+
+4. Salmon_ProcessedData_NewReddCountInterpolation.csv
+
+Missing new redd counts were interpolated before the calculation of the mean live count observations per month.
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Number  | N/A         |
+| MeanRedd    | Average count of live salmon observed per month                   | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date | YYYY-MM-DD      |
+
+
+5. ChinookSalmon_ProcessedData.csv
+
+
+Subsets only the Chinook Salmon observations from salmon_data.csv, and adds a month column for averaging purposes and time-series analysis.
+
+
+| Column Name | Description | Data Type | Units |
+|-------------|-------------|-----------|-------|
+| Month       | Isolated observation month for averaging purposes and time-series analysis. | Date & Time | YYYY-MM |
+ 
+
+
+6. ChinookSalmon_ProcessedData_Interpolation.csv
+
+This dataset includes mean live and new redd counts for only Chinook Salmon.
+
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Date & Time  | YYYY-MM         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| MeanRedd    | Average new redd count observed per month                         | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date & Time  | YYYY-MM-DD      |
+
+
+7. CohoSalmon_ProcessedData.csv
+
+
+Subsets only the Coho Salmon observations from salmon_data.csv, and adds a month column for averaging purposes and time-series analysis.
+
+
+| Column Name | Description | Data Type | Units |
+|-------------|-------------|-----------|-------|
+| Month       | Isolated observation month for averaging purposes and time-series analysis. | Date & Time | YYYY-MM |
+
+
+8. CohoSalmon_ProcessedData_Interpolation.csv
+
+This dataset includes mean live and new redd counts for only Coho Salmon.
+
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Date & Time  | YYYY-MM         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| MeanRedd    | Average new redd count observed per month                         | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date & Time  | YYYY-MM-DD      |
+
+
+9. SockeyeSalmon_ProcessedData.csv
+
+
+Subsets only the Sockeye Salmon observations from salmon_data.csv, and adds a month column for averaging purposes and time-series analysis.
+
+
+| Column Name | Description | Data Type | Units |
+|-------------|-------------|-----------|-------|
+| Month       | Isolated observation month for averaging purposes and time-series analysis. | Date & Time | YYYY-MM |
+
+
+
+
+10. SockeyeSalmon_ProcessedData_Interpolation.csv
+
+This dataset includes mean live and new redd counts for only Sockeye Salmon.
+
+
+| Column Name | Description                                                        | Data Type    | Units          |
+|-------------|--------------------------------------------------------------------|--------------|----------------|
+| Year        | The year of observation                                            | Plain Text   | N/A            |
+| Month       | The month of observation                                           | Date & Time  | YYYY-MM         |
+| MeanLive    | Average count of live salmon observed per month                   | Number       | N/A            |
+| MeanRedd    | Average new redd count observed per month                         | Number       | N/A            |
+| Date        | The specific date representing the observation period            | Date & Time  | YYYY-MM-DD      |
+
+
+## Scripts and code
+
+### Wrangling Code:
+1. **Wrangled_Data.Rmd**
+   - Code for wrangling the salmon dataset
+
+### Exploration Code:
+1. **Project_Work.Rmd**
+   - Code for subsetting and interpolating the wrangled data.
+   - General observation graphs, single regressions, multiple regressions, time-series analyses, and geodatabases were explored here.
+
+### Analysis Code:
+1. **KelleyLiddle_ENV872_EDA_FinalReport.Rmd**
+   - Successful analyses were compiled here to form a comprehensive report.
+
+## Quality assurance/quality control
+
+None
